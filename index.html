@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Saxacalli Sand Mining Group Map</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <style>
+    #map { height: 100vh; }
+    .legend {
+      background: white;
+      line-height: 1.5em;
+      padding: 6px 8px;
+      border: 1px solid black;
+      font-size: 12px;
+    }
+  </style>
+</head>
+<body>
+
+<h2 style="text-align: center;">Saxacalli Sand Mining Group - Interactive Map</h2>
+<div id="map"></div>
+
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+<script>
+  var map = L.map('map').setView([6.5833, -58.6167], 13);
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19,
+    attribution: '© OpenStreetMap contributors'
+  }).addTo(map);
+
+  var overviewMarker = L.marker([6.5833, -58.6167]).bindTooltip("Saxacalli Sand Mining Group", {permanent: true, direction: "top"}).addTo(map);
+
+  var detailedLayer = L.layerGroup();
+
+  // Buffer zone
+  var buffer = L.rectangle([[6.582, -58.620], [6.588, -58.612]], {
+    color: 'green',
+    weight: 1,
+    fill: false,
+    dashArray: '5,5'
+  }).bindTooltip("Buffer Zone", {permanent: true, direction: "center"});
+  detailedLayer.addLayer(buffer);
+
+  // Office & Employee Facilities - moved further right within buffer
+  var office = L.rectangle([[6.586, -58.617], [6.584, -58.619]], {color: 'black', fillColor: 'gray', fillOpacity: 0.4, weight: 1}).bindTooltip("Office & Employee Facilities", {permanent: true, direction: "top"});
+  detailedLayer.addLayer(office);
+
+  // Waste Rock Storage
+  var waste = L.polygon([
+    [6.5865, -58.6175],
+    [6.5868, -58.6175],
+    [6.5866, -58.617],
+    [6.5862, -58.617]
+  ], {color: 'black', fillColor: 'lightgray', fillOpacity: 0.4, weight: 1}).bindTooltip("Waste Rock Storage", {permanent: true, direction: "top"});
+  detailedLayer.addLayer(waste);
+
+  // Processing Plant
+  var processing = L.polygon([
+    [6.5838, -58.6168],
+    [6.5843, -58.6168],
+    [6.5843, -58.6163],
+    [6.584, -58.6163],
+    [6.584, -58.6165],
+    [6.5838, -58.6165]
+  ], {color: 'black', fillColor: 'tan', fillOpacity: 0.4, weight: 1}).bindTooltip("Processing Plant", {permanent: true, direction: "top"});
+  detailedLayer.addLayer(processing);
+
+  // Tailings Facility
+  var tailings = L.polygon([
+    [6.5825, -58.6173],
+    [6.583, -58.6173],
+    [6.583, -58.6167],
+    [6.5827, -58.6167],
+    [6.5825, -58.617]
+  ], {color: 'black', fillColor: 'saddlebrown', fillOpacity: 0.4, weight: 1}).bindTooltip("Tailings Facility", {permanent: true, direction: "top"});
+  detailedLayer.addLayer(tailings);
+
+  // Water Management
+  var water = L.circle([6.583, -58.6155], {
+    color: 'blue',
+    fillColor: 'blue',
+    fillOpacity: 0.3,
+    radius: 30
+  }).bindTooltip("Water Management", {permanent: true, direction: "top"});
+  detailedLayer.addLayer(water);
+
+  // Muster Point (directly under water management, on land)
+  var muster = L.circle([6.5825, -58.6155], {
+    color: 'black',
+    fillColor: 'black',
+    fillOpacity: 0.6,
+    radius: 10
+  }).bindTooltip("Muster Point", {permanent: true, direction: "top"});
+  detailedLayer.addLayer(muster);
+
+  // Barge Landing & Route
+  var bargeLanding = L.marker([6.585, -58.614]).bindTooltip("Barge Landing", {permanent: true, direction: "top"});
+  detailedLayer.addLayer(bargeLanding);
+
+  var bargeRoute = L.polyline([[6.585, -58.614], [6.587, -58.612]], {color: 'black', weight: 1, dashArray: '5,5'}).bindTooltip("Barge Route", {permanent: true, direction: "center"});
+  detailedLayer.addLayer(bargeRoute);
+
+  // Dredge Area
+  var dredgeArea = L.circle([6.586, -58.6135], {
+    color: 'black',
+    fillOpacity: 0,
+    radius: 50,
+    dashArray: '4,4'
+  }).bindTooltip("Dredge Area", {permanent: true, direction: "top"});
+  detailedLayer.addLayer(dredgeArea);
+
+  // Updated Pathways
+  var pathways = [
+    [[6.5825, -58.6155], [6.584, -58.619]],  // Muster to Office
+    [[6.583, -58.6155], [6.5838, -58.6165]],  // Water to Processing
+    [[6.5843, -58.6165], [6.5843, -58.617]], // Processing to Office
+    [[6.584, -58.619], [6.5865, -58.6175]],  // Office to Waste
+    [[6.5827, -58.617], [6.584, -58.6165]],   // Tailings to Processing
+    [[6.5827, -58.617], [6.583, -58.6155]]    // Tailings to Water
+  ];
+  pathways.forEach(function(path) {
+    L.polyline(path, {color: 'black', weight: 1, dashArray: '2,4'}).addTo(detailedLayer);
+  });
+
+  // Legend
+  var legend = L.control({position: 'bottomleft'});
+  legend.onAdd = function (map) {
+    var div = L.DomUtil.create('div', 'legend');
+    div.innerHTML += "<b>Legend</b><br>";
+    div.innerHTML += "<i style='background: gray; width: 10px; display: inline-block'>&nbsp;</i> Office & Employee Facilities<br>";
+    div.innerHTML += "<i style='background: lightgray; width: 10px; display: inline-block'>&nbsp;</i> Waste Rock Storage<br>";
+    div.innerHTML += "<i style='background: tan; width: 10px; display: inline-block'>&nbsp;</i> Processing Plant<br>";
+    div.innerHTML += "<i style='background: saddlebrown; width: 10px; display: inline-block'>&nbsp;</i> Tailings Facility<br>";
+    div.innerHTML += "<i style='background: blue; width: 10px; display: inline-block'>&nbsp;</i> Water Management<br>";
+    div.innerHTML += "<i style='background: green; width: 10px; display: inline-block; border: 1px dashed black'>&nbsp;</i> Buffer Zone<br>";
+    div.innerHTML += "— — Pathways<br>";
+    div.innerHTML += "<i style='background: black; width: 10px; display: inline-block'>&nbsp;</i> Barge Route, Barge Landing, Muster Point, Dredge Area<br>";
+    return div;
+  };
+  legend.addTo(map);
+
+  map.removeLayer(detailedLayer);
+
+  map.on('zoomend', function() {
+    if (map.getZoom() >= 15) {
+      if (!map.hasLayer(detailedLayer)) { map.addLayer(detailedLayer); }
+      if (map.hasLayer(overviewMarker)) { map.removeLayer(overviewMarker); }
+    } else {
+      if (map.hasLayer(detailedLayer)) { map.removeLayer(detailedLayer); }
+      if (!map.hasLayer(overviewMarker)) { map.addLayer(overviewMarker); }
+    }
+  });
+</script>
+</body>
+</html>
